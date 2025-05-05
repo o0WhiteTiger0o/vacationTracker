@@ -348,6 +348,8 @@
     <div class="container">
         <h1>Trip Destination Tracker</h1>
         
+        <!-- Storage warning will appear here if needed -->
+        
         <!-- Action buttons -->
         <div class="actions">
             <button id="addBtn" class="action-btn add-btn">
@@ -362,6 +364,9 @@
                     📥
                     <input type="file" id="importInput" class="file-input" accept=".json">
                 </label>
+                <button id="clearBtn" class="action-btn utility-btn" title="Clear all destinations">
+                    🗑️
+                </button>
             </div>
         </div>
         
@@ -440,43 +445,113 @@
         const filterButtons = document.querySelectorAll('.filter-btn');
         const exportBtn = document.getElementById('exportBtn');
         const importInput = document.getElementById('importInput');
+        const clearBtn = document.getElementById('clearBtn');
         
         // State
         let destinations = [];
         let currentFilter = 'all';
         
-        // In-memory storage only (no localStorage)
-        function loadDestinations() {
-            // Initialize with some example destinations
-            destinations = [
-                {
-                    id: 1,
-                    name: "Golden Gate Bridge",
-                    address: "Golden Gate Bridge, San Francisco, CA",
-                    category: "attraction",
-                    notes: "Best visited in the morning for fewer crowds"
-                },
-                {
-                    id: 2,
-                    name: "Fisherman's Wharf Airbnb",
-                    address: "123 Jefferson St, San Francisco, CA 94133",
-                    category: "airbnb",
-                    notes: "Check-in: 3pm, Checkout: 11am"
-                },
-                {
-                    id: 3,
-                    name: "Tartine Bakery",
-                    address: "600 Guerrero St, San Francisco, CA 94110",
-                    category: "restaurant",
-                    notes: "Famous for their morning buns and country bread"
+        // Storage methods with fallbacks
+        const storage = {
+            save: function(data) {
+                try {
+                    // Try localStorage first
+                    localStorage.setItem('tripDestinations', JSON.stringify(data));
+                    return true;
+                } catch (e) {
+                    try {
+                        // Try sessionStorage as fallback
+                        sessionStorage.setItem('tripDestinations', JSON.stringify(data));
+                        return true;
+                    } catch (e2) {
+                        console.warn("Storage not available in this environment");
+                        return false;
+                    }
                 }
-            ];
+            },
+            
+            load: function() {
+                try {
+                    // Try localStorage first
+                    const data = localStorage.getItem('tripDestinations');
+                    if (data) return JSON.parse(data);
+                } catch (e) {
+                    try {
+                        // Try sessionStorage as fallback
+                        const data = sessionStorage.getItem('tripDestinations');
+                        if (data) return JSON.parse(data);
+                    } catch (e2) {
+                        console.warn("Storage not available in this environment");
+                    }
+                }
+                // Return default data if nothing found
+                return [
+                    {
+                        id: 1,
+                        name: "Golden Gate Bridge",
+                        address: "Golden Gate Bridge, San Francisco, CA",
+                        category: "attraction",
+                        notes: "Best visited in the morning for fewer crowds"
+                    },
+                    {
+                        id: 2,
+                        name: "Fisherman's Wharf Airbnb",
+                        address: "123 Jefferson St, San Francisco, CA 94133",
+                        category: "airbnb",
+                        notes: "Check-in: 3pm, Checkout: 11am"
+                    },
+                    {
+                        id: 3,
+                        name: "Tartine Bakery",
+                        address: "600 Guerrero St, San Francisco, CA 94110",
+                        category: "restaurant",
+                        notes: "Famous for their morning buns and country bread"
+                    }
+                ];
+            },
+            
+            clear: function() {
+                try {
+                    localStorage.removeItem('tripDestinations');
+                } catch (e) {
+                    try {
+                        sessionStorage.removeItem('tripDestinations');
+                    } catch (e2) {
+                        // Silently fail
+                    }
+                }
+            }
+        };
+
+        // Load destinations with fallback storage methods
+        function loadDestinations() {
+            destinations = storage.load();
             renderDestinations();
         }
         
-        // Save destinations (in-memory only)
+        // Save destinations with fallback storage methods
         function saveDestinations() {
-            // No localStorage, just update the UI
+            const saved = storage.save(destinations);
+            if (!saved) {
+                console.warn("Could not save destinations persistently");
+                // Show indication that data won't persist
+                const notification = document.createElement('div');
+                notification.className = 'storage-notice';
+                notification.innerHTML = 'Note: Your destinations will not be saved between sessions in this environment';
+                notification.style.backgroundColor = '#fffbd1';
+                notification.style.color = '#846a00';
+                notification.style.padding = '8px';
+                notification.style.borderRadius = '4px';
+                notification.style.margin = '8px 0';
+                notification.style.fontSize = '14px';
+                
+                // Check if notice already exists
+                const existingNotice = document.querySelector('.storage-notice');
+                if (!existingNotice) {
+                    const container = document.querySelector('.container');
+                    container.insertBefore(notification, container.firstChild.nextSibling);
+                }
+            }
             renderDestinations();
         }
         
@@ -526,7 +601,8 @@
             
             document.querySelectorAll('.maps-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const address = e.target.getAttribute('data-address');
+                    // Fix for event bubbling
+                    const address = e.currentTarget.getAttribute('data-address');
                     openInMaps(address);
                 });
             });
@@ -575,6 +651,15 @@
             } else {
                 // Default to Google Maps
                 window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+            }
+        }
+        
+        // Clear all destinations
+        function clearAllDestinations() {
+            if (confirm('Are you sure you want to delete all destinations?')) {
+                destinations = [];
+                storage.clear();
+                saveDestinations();
             }
         }
         
@@ -662,6 +747,8 @@
             }
         });
         
+        clearBtn.addEventListener('click', clearAllDestinations);
+        
         // Close modal when clicking outside
         addModal.addEventListener('click', (e) => {
             if (e.target === addModal) {
@@ -669,7 +756,7 @@
             }
         });
         
-        // Initialize app with sample data
+        // Initialize app with storage capabilities
         loadDestinations();
     </script>
 </body>
