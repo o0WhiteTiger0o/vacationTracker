@@ -527,6 +527,9 @@
             <button class="filter-btn restaurant" data-filter="restaurant">
                 <span class="filter-icon">🍽️</span> Restaurants
             </button>
+            <button class="filter-btn mall" data-filter="mall">
+                <span class="filter-icon">🛍️</span> Malls
+            </button>
         </div>
         
         <!-- Destinations list -->
@@ -559,9 +562,10 @@
             <div class="form-group">
                 <label class="form-label">Category</label>
                 <select id="destCategory" class="form-select">
-                    <option value="attraction">Attraction</option>
+                    <option value="attraction">Attractions</option>
                     <option value="airbnb">Airbnb</option>
-                    <option value="restaurant">Restaurant</option>
+                    <option value="restaurant">Restaurants</option>
+                    <option value="mall">Malls</option>
                 </select>
             </div>
             
@@ -700,6 +704,7 @@
                 case 'attraction': return '<span class="icon-attraction">⭐</span>';
                 case 'airbnb': return '<span class="icon-airbnb">🏠</span>';
                 case 'restaurant': return '<span class="icon-restaurant">🍽️</span>';
+                case 'mall': return '<span class="icon-mall">🛍️</span>';
                 default: return '<span>📍</span>';
             }
         }
