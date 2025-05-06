@@ -137,6 +137,9 @@
         .filter-btn.mall.active {
             background-color: green;
         }
+        .filter-btn.beach.active {
+            background-color: indigo;
+        }
         .filter-btn:not(.active) {
             background-color: #e5e7eb;
         }
@@ -191,6 +194,12 @@
         
         .icon-restaurant {
             color: #ef4444;
+        }
+        .icon-mall {
+            color: green;
+        }
+        .icon-beach {
+            color:indigo;
         }
         
         .destination-details {
@@ -532,6 +541,9 @@
             <button class="filter-btn mall" data-filter="mall">
                 <span class="filter-icon">🛍️</span> Malls
             </button>
+            <button class="filter-btn beach" data-filter="beach">
+                <span class="filter-icon">🏖️</span> Beaches
+            </button>
         </div>
         
         <!-- Destinations list -->
@@ -707,6 +719,7 @@
                 case 'airbnb': return '<span class="icon-airbnb">🏠</span>';
                 case 'restaurant': return '<span class="icon-restaurant">🍽️</span>';
                 case 'mall': return '<span class="icon-mall">🛍️</span>';
+                case 'beach': return '<span class="icon-beach">🏖️</span>';
                 default: return '<span>📍</span>';
             }
         }
