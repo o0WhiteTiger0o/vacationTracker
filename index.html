@@ -19,7 +19,8 @@
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
-            padding: 40px 20px;
+            padding: 0;
+            margin: 0;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -29,26 +30,30 @@
         .container {
             width: 100%;
             max-width: 80%;
-            margin: 0 auto;
+            margin: 20px;
             background-color: rgba(255, 255, 255, 0.95);
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            padding: 30px 25px;
+            padding: 25px 20px;
             backdrop-filter: blur(5px);
+            box-sizing: border-box;
         }
         
         h1 {
             text-align: center;
             margin-bottom: 24px;
             color: #333;
-            font-size: 26px;
+            font-size: clamp(22px, 5vw, 26px);
         }
         
         /* Action buttons */
         .actions {
             display: flex;
+            flex-direction: row;
             justify-content: space-between;
             margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .action-btn {
@@ -95,6 +100,7 @@
             overflow-x: auto;
             padding: 4px 0;
             justify-content: center;
+            flex-wrap: wrap;
         }
         
         .filter-btn {
@@ -106,6 +112,7 @@
             white-space: nowrap;
             display: flex;
             align-items: center;
+            margin-bottom: 5px;
         }
         
         .filter-btn.active {
@@ -158,15 +165,18 @@
         .card-header {
             display: flex;
             justify-content: space-between;
+            flex: 1;
         }
         
         .destination-info {
             display: flex;
             gap: 12px;
+            width: calc(100% - 30px);
         }
         
         .category-icon {
             margin-top: 4px;
+            flex-shrink: 0;
         }
         
         .icon-attraction {
@@ -181,9 +191,16 @@
             color: #ef4444;
         }
         
+        .destination-details {
+            width: 100%;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+        
         .destination-details h3 {
             font-weight: 600;
             margin-bottom: 4px;
+            font-size: clamp(16px, 4vw, 18px);
         }
         
         .destination-address {
@@ -204,6 +221,8 @@
             color: #9ca3af;
             cursor: pointer;
             padding: 4px;
+            flex-shrink: 0;
+            height: 24px;
         }
         
         .delete-btn:hover {
@@ -239,6 +258,7 @@
             background-color: rgba(249, 250, 251, 0.7);
             border-radius: 8px;
             color: #6b7280;
+            grid-column: 1 / -1;
         }
         
         /* Modal styles */
@@ -262,7 +282,9 @@
             border-radius: 12px;
             width: 100%;
             max-width: 480px;
-            padding: 28px;
+            padding: 24px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .modal-header {
@@ -354,17 +376,10 @@
         .utility-btns {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
         
-        .storage-notice {
-            background-color: #fffbd1;
-            color: #846a00;
-            padding: 8px;
-            border-radius: 4px;
-            margin: 8px 0;
-            font-size: 14px;
-            text-align: center;
-        }
+
         
         /* Custom scrollbar for webkit browsers */
         ::-webkit-scrollbar {
@@ -398,6 +413,78 @@
             position: relative;
             padding: 0 10px;
         }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+                margin: 10px;
+                max-width: calc(100% - 20px);
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .action-btn, .utility-btns {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .utility-btns {
+                justify-content: space-between;
+            }
+            
+            .utility-btn {
+                flex: 1;
+                justify-content: center;
+            }
+            
+            .filter-container {
+                justify-content: flex-start;
+                padding-bottom: 5px;
+            }
+            
+            .app-title:before, .app-title:after {
+                padding: 0 5px;
+            }
+            
+            .modal {
+                padding: 20px 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .destinations {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .app-title:before, .app-title:after {
+                display: none;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .destinations {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .destinations {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (min-width: 1440px) {
+            .destinations {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
     </style>
     <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -407,8 +494,6 @@
 <body>
     <div class="container">
         <h1><span class="app-title">Trip Destination Tracker</span></h1>
-
-        <!-- Storage warning will appear here if needed -->
         
         <!-- Action buttons -->
         <div class="actions">
@@ -492,29 +577,20 @@
     </div>
 
     <script>
-        
-        
-        // Call this after the page loads
+        // Initialize app when DOM content is loaded
         window.addEventListener('DOMContentLoaded', () => {
-            checkSecureConnection();
+            // App initialization
         });
 
         // Firebase configuration - replace with your own Firebase project config
         const firebaseConfig = {
             apiKey: "AIzaSyDdyhKgUzMTCjgPS6E87LZFNayAKXUvPHw",
-
             authDomain: "texas-1b136.firebaseapp.com",
-
             databaseURL: "https://texas-1b136-default-rtdb.firebaseio.com",
-
             projectId: "texas-1b136",
-
             storageBucket: "texas-1b136.firebasestorage.app",
-
             messagingSenderId: "420699437114",
-
             appId: "1:420699437114:web:0739dd3ffee2018f345d03",
-
             measurementId: "G-BK4M9SMVSX"
         };
 
@@ -783,6 +859,35 @@
                 addModal.classList.add('hidden');
             }
         });
+
+        // Handle keyboard navigation for accessibility
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !addModal.classList.contains('hidden')) {
+                addModal.classList.add('hidden');
+            }
+        });
+
+        // Add touch events for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+        
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+        
+        function handleSwipe() {
+            const threshold = 100;
+            
+            // Left swipe to open modal
+            if (touchEndX - touchStartX < -threshold && addModal.classList.contains('hidden')) {
+                addBtn.click();
+            }
+        }
 
         // Initialize app
         loadDestinations();
