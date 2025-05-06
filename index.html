@@ -92,6 +92,31 @@
             display: none;
         }
         
+        /* Mobile filter dropdown styles */
+        .mobile-filter-select {
+            display: none;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            background-color: white;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+        }
+
+        .mobile-filter-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #93c5fd;
+        }
+        
         /* Filter buttons */
         .filter-container {
             display: flex;
@@ -390,8 +415,6 @@
             flex-wrap: wrap;
         }
         
-
-        
         /* Custom scrollbar for webkit browsers */
         ::-webkit-scrollbar {
             width: 8px;
@@ -452,8 +475,11 @@
             }
             
             .filter-container {
-                justify-content: flex-start;
-                padding-bottom: 5px;
+                display: none;
+            }
+            
+            .mobile-filter-select {
+                display: block;
             }
             
             .app-title:before, .app-title:after {
@@ -462,6 +488,16 @@
             
             .modal {
                 padding: 20px 15px;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .mobile-filter-select {
+                display: none;
+            }
+            
+            .filter-container {
+                display: flex;
             }
         }
         
@@ -526,7 +562,17 @@
             </div>
         </div>
         
-        <!-- Filter buttons -->
+        <!-- Mobile filter dropdown -->
+        <select id="mobileFilter" class="mobile-filter-select">
+            <option value="all">All Destinations</option>
+            <option value="attraction">⭐ Attractions</option>
+            <option value="airbnb">🏠 Airbnb</option>
+            <option value="restaurant">🍽️ Restaurants</option>
+            <option value="mall">🛍️ Malls</option>
+            <option value="beach">🏖️ Beaches</option>
+        </select>
+        
+        <!-- Filter buttons (hidden on mobile) -->
         <div class="filter-container">
             <button class="filter-btn all active" data-filter="all">All</button>
             <button class="filter-btn attraction" data-filter="attraction">
@@ -631,6 +677,7 @@
         const exportBtn = document.getElementById('exportBtn');
         const importInput = document.getElementById('importInput');
         const clearBtn = document.getElementById('clearBtn');
+        const mobileFilter = document.getElementById('mobileFilter');
 
         // State
         let destinations = [];
@@ -663,6 +710,9 @@
 
         // Render destinations based on current filter
         function renderDestinations() {
+            // Update mobile filter dropdown to match current filter
+            mobileFilter.value = currentFilter;
+            
             const filteredDestinations = currentFilter === 'all' 
                 ? destinations 
                 : destinations.filter(dest => dest.category === currentFilter);
@@ -860,6 +910,19 @@
                 currentFilter = btn.getAttribute('data-filter');
                 renderDestinations();
             });
+        });
+
+        // Mobile filter dropdown change handler
+        mobileFilter.addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            // Update active state of buttons (for when screen is resized)
+            filterButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === currentFilter) {
+                    btn.classList.add('active');
+                }
+            });
+            renderDestinations();
         });
 
         exportBtn.addEventListener('click', exportDestinations);
