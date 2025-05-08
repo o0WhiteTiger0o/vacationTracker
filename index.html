@@ -829,7 +829,7 @@
             }
         }
 
-        // Import destinations from JSON file
+        // Import destinations from JSON file (replace only when name AND address match)
         function importDestinations(file) {
             const reader = new FileReader();
             
@@ -837,13 +837,51 @@
                 try {
                     const importedData = JSON.parse(e.target.result);
                     if (Array.isArray(importedData)) {
-                        if (confirm(`Import ${importedData.length} destinations? This will replace your current destinations.`)) {
-                            destinations = importedData;
-                            // Ensure all imported destinations have IDs
-                            destinations.forEach(dest => {
-                                if (!dest.id) dest.id = Date.now().toString();
+                        if (confirm(`Import ${importedData.length} destinations? Matching names and addresses will be updated.`)) {
+                            // Track changes
+                            let addedCount = 0;
+                            let updatedCount = 0;
+                            let skippedCount = 0;
+
+                            importedData.forEach(importedDest => {
+                                // Ensure the destination has required fields
+                                if (!importedDest.name || !importedDest.address) {
+                                    skippedCount++;
+                                    return;
+                                }
+
+                                // Generate ID if missing
+                                if (!importedDest.id) importedDest.id = Date.now().toString();
+
+                                // Find matching destination (same name AND address)
+                                const existingIndex = destinations.findIndex(dest => 
+                                    dest.name.toLowerCase() === importedDest.name.toLowerCase() && 
+                                    dest.address.toLowerCase() === importedDest.address.toLowerCase()
+                                );
+
+                                if (existingIndex >= 0) {
+                                    // Preserve the original ID if we're updating
+                                    importedDest.id = destinations[existingIndex].id;
+                                    // Update existing destination while preserving some original data
+                                    destinations[existingIndex] = {
+                                        ...destinations[existingIndex], // Keep original data
+                                        ...importedDest,               // Apply imported data
+                                        id: destinations[existingIndex].id // Keep original ID
+                                    };
+                                    updatedCount++;
+                                } else {
+                                    // Add new destination
+                                    destinations.push(importedDest);
+                                    addedCount++;
+                                }
                             });
-                            saveDestinations();
+
+                            if (addedCount > 0 || updatedCount > 0) {
+                                saveDestinations();
+                                alert(`Import results:\n\nAdded: ${addedCount} new destinations\nUpdated: ${updatedCount} existing destinations\nSkipped: ${skippedCount} incomplete entries`);
+                            } else {
+                                alert('No changes were made. No matching destinations found.');
+                            }
                         }
                     } else {
                         alert('Invalid format: The file should contain an array of destinations');
